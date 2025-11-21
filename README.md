@@ -98,24 +98,23 @@ $$
 
 Where:
 
-*   **Mass In ($\dot{m}_{in}$):** Sum of propellant generation and igniter flux.
+* **Mass In ($\dot{m}_{in}$):** Sum of propellant generation and igniter flux.
 
-    $$
+    ```math
     \dot{m}_{gen} = A_{burn}(x) \cdot r \cdot \rho_{prop}
-    $$
+    ```
 
-*   **Mass Out ($\dot{m}_{out}$):** Mass flow through the nozzle throat (assuming Choked Flow).
+* **Mass Out ($\dot{m}_{out}$):** Mass flow through the nozzle throat (assuming Choked Flow).
 
-    $$
+    ```math
     \dot{m}_{out} = \frac{P_c A_{throat}}{c^*}
-    $$
+    ```
 
-*   **Free Volume ($V_{free}$):** The void volume increases as propellant is consumed.
+* **Free Volume ($V_{free}$):** The void volume increases as propellant is consumed.
 
-    $$
+    ```math
     V_{free}(t) = V_{casing} - V_{grain}(t)
-    $$
-
+    ```
 ### 3. Nozzle Gas Dynamics (Isentropic Flow)
 Thrust is calculated by analyzing the isentropic expansion of gas through the de Laval nozzle.
 

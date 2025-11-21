@@ -1,12 +1,16 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
-                             QLabel, QLineEdit, QComboBox, QFormLayout, QPushButton, QMessageBox, QHBoxLayout)
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QLineEdit, QComboBox, QFormLayout, QHBoxLayout)
 from PyQt6.QtGui import QDoubleValidator
 from fos_engine.core.units import Units
 from fos_engine.core.propellant import Propellant
 from fos_engine.utils.storage import DataManager
 
 class PropellantTab(QWidget):
+    """
+    GUI Tab for configuring Propellant Properties.
+    Allows user to input Density, C*, and Burn Rate parameters (Saint Robert's Law).
+    """
+
     def __init__(self):
         super().__init__()
         self.propellant = Propellant.create_knsb() # Default
@@ -35,14 +39,8 @@ class PropellantTab(QWidget):
 
         self.density_input = QLineEdit(str(Units.kg_m3_to_g_cm3(self.propellant.density)))
         self.cstar_input = QLineEdit(str(self.propellant.c_star))
-        self.a_input = QLineEdit(str(self.propellant.burn_rate_a)) # Need to decide units for UI display for 'a'
-        # Displaying 'a' is tricky because units depend on 'n'.
-        # Let's display it as raw SI for now or try to convert back to Nakka's units (mm/s, MPa) for display?
-        # Users usually copy paste 'a' and 'n'.
-        # Let's stick to displaying SI but maybe with a tooltip.
-        # Actually, displaying 'a' in SI is very small numbers (e.g. 5e-6).
-        # Let's verify what user input expects. Prompt says: "a: Burn rate coefficient".
-        # Let's keep it simple: raw value for now, maybe scientific notation.
+        # 'a' is displayed in raw SI units.
+        self.a_input = QLineEdit(str(self.propellant.burn_rate_a))
 
         self.n_input = QLineEdit(str(self.propellant.burn_rate_n))
         self.k_input = QLineEdit(str(self.propellant.k))
@@ -67,6 +65,7 @@ class PropellantTab(QWidget):
         self.setLayout(layout)
 
     def load_preset(self, index):
+        """Load propellant data from the dropdown selection."""
         if index == 0: return # Custom
         prop = self.preset_combo.itemData(index)
         if prop:
@@ -78,6 +77,10 @@ class PropellantTab(QWidget):
             self.k_input.setText(str(prop.k))
 
     def get_propellant(self):
+        """
+        Construct and return the Propellant object from UI inputs.
+        Returns None if inputs are invalid.
+        """
         try:
             return Propellant(
                 name=self.name_input.text(),

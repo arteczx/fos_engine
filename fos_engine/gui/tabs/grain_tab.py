@@ -4,6 +4,11 @@ from fos_engine.core.grain import BatesGrain
 from fos_engine.core.units import Units
 
 class GrainTab(QWidget):
+    """
+    GUI Tab for configuring Propellant Grain Geometry.
+    Currently supports BATES grains.
+    """
+
     def __init__(self):
         super().__init__()
         self.init_ui()
@@ -14,7 +19,7 @@ class GrainTab(QWidget):
         form_layout = QFormLayout()
 
         self.type_combo = QComboBox()
-        self.type_combo.addItems(["BATES"]) # Expand later
+        self.type_combo.addItems(["BATES"]) # Placeholder for future grain types
 
         self.od_input = QLineEdit("50") # mm
         self.core_input = QLineEdit("18") # mm
@@ -42,6 +47,9 @@ class GrainTab(QWidget):
         self.setLayout(layout)
 
     def get_grain(self):
+        """
+        Construct and return the Grain object from UI inputs.
+        """
         try:
             return BatesGrain(
                 outer_diameter=Units.mm_to_m(float(self.od_input.text())),

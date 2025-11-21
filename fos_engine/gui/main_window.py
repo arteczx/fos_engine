@@ -14,6 +14,11 @@ from fos_engine.utils.storage import DataManager
 from fos_engine.utils.exporter import Exporter
 
 class MainWindow(QMainWindow):
+    """
+    The Main Window of the FOS Engine Application.
+    Orchestrates the UI tabs and manages the application state (Simulation Logic).
+    """
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("FOS Engine - Solid Motor Design")
@@ -22,6 +27,7 @@ class MainWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
+        """Initialize UI components and Tabs."""
         self.tabs = QTabWidget()
 
         self.propellant_tab = PropellantTab()
@@ -49,6 +55,11 @@ class MainWindow(QMainWindow):
         file_menu.addAction(load_action)
 
     def run_simulation_logic(self):
+        """
+        Triggered by the Simulation Tab.
+        Gathers data from all tabs, instantiates the Simulation engine,
+        runs the physics, and updates the results view.
+        """
         # 1. Gather Inputs
         prop = self.propellant_tab.get_propellant()
         grain = self.grain_tab.get_grain()
@@ -68,10 +79,7 @@ class MainWindow(QMainWindow):
         total_impulse = sum(results["thrust"]) * sim.dt
         burn_time = results["time"][-1] if results["time"] else 0
 
-        # Propellant Mass (approx)
-        # m_prop = density * volume_grain_initial
-        # But simplified Isp calc: Isp = Itot / (m_prop * g0)
-        # Let's sum mass flow out for total mass ejected
+        # Propellant Mass Ejected Summation
         total_mass_ejected = sum(results["mass_flow_out"]) * sim.dt
         isp = (total_impulse / (total_mass_ejected * 9.81)) if total_mass_ejected > 0 else 0
 
@@ -87,6 +95,7 @@ class MainWindow(QMainWindow):
             "burst_pressure": hw.get_burst_pressure()
         }
 
+        # Cache current state for export
         self.current_results = results
         self.current_metrics = metrics
         self.current_hw = hw
@@ -96,6 +105,7 @@ class MainWindow(QMainWindow):
         self.simulation_tab.update_results(results, metrics, hardware_safety)
 
     def save_design(self):
+        """Save current configuration to JSON."""
         fname, _ = QFileDialog.getSaveFileName(self, "Save Motor", "", "JSON Files (*.json)")
         if fname:
             prop = self.propellant_tab.get_propellant()
@@ -106,17 +116,11 @@ class MainWindow(QMainWindow):
                 DataManager.save_motor(fname, prop, grain, hw, settings)
 
     def load_design(self):
+        """Load configuration from JSON and populate tabs."""
         fname, _ = QFileDialog.getOpenFileName(self, "Load Motor", "", "JSON Files (*.json)")
         if fname:
             try:
                 prop, grain, hw, settings = DataManager.load_motor(fname)
-                # Populate UI (simplified)
-                # We need Setters in tabs. For now, just manual text set would be needed
-                # But since I used QLineEdit, I can set text.
-                # For MVP, let's just assume user re-enters or I implement setters.
-                # I implemented `load_preset` in propellant, but not full setters.
-                # Let's just set propellant for now or implement properly if time permits.
-                # Actually the requirement was "Reload later". So I should implement setters.
 
                 # Propellant Tab
                 self.propellant_tab.name_input.setText(prop.name)
@@ -149,6 +153,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", f"Failed to load: {e}")
 
     def export_rasp(self):
+        """Export the last simulation result to a .eng file."""
         if not hasattr(self, 'current_results'): return
         fname, _ = QFileDialog.getSaveFileName(self, "Export RASP", "", "Engine Files (*.eng)")
         if fname:
@@ -156,6 +161,7 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Exported", f"Saved to {fname}")
 
 def main():
+    """Application Entry Point."""
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

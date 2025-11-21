@@ -4,6 +4,10 @@ from fos_engine.core.hardware import Hardware
 from fos_engine.core.units import Units
 
 class HardwareTab(QWidget):
+    """
+    GUI Tab for configuring Motor Hardware (Nozzle and Casing).
+    """
+
     def __init__(self):
         super().__init__()
         self.init_ui()
@@ -40,6 +44,10 @@ class HardwareTab(QWidget):
         self.setLayout(layout)
 
     def get_hardware(self):
+        """
+        Construct and return the Hardware object from UI inputs.
+        Includes validation for non-zero throat diameter.
+        """
         try:
             dt = float(self.throat_input.text())
             if dt <= 0: raise ValueError("Throat diameter must be > 0")

@@ -5,6 +5,12 @@ from matplotlib.figure import Figure
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTextEdit, QCheckBox)
 
 class SimulationTab(QWidget):
+    """
+    GUI Tab for Running the Simulation and Visualization.
+    Displays interactive Matplotlib graphs for Thrust and Pressure.
+    Shows summary metrics (Isp, Impulse, Max Pressure).
+    """
+
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
@@ -48,9 +54,18 @@ class SimulationTab(QWidget):
         self.setLayout(layout)
 
     def run_simulation(self):
+        """Delegates the run action to the Main Window logic."""
         self.main_window.run_simulation_logic()
 
     def update_results(self, results, metrics, hardware_safety):
+        """
+        Updates the plots and results label with new simulation data.
+
+        Args:
+            results (dict): Simulation time series data.
+            metrics (dict): Summary stats (Isp, Pmax).
+            hardware_safety (dict): Hardware limits (Burst Pressure).
+        """
         self.last_results = results
         self.export_btn.setEnabled(True)
 
@@ -70,9 +85,7 @@ class SimulationTab(QWidget):
         burst_pressure_psi = hardware_safety["burst_pressure"] * 1.45038e-4
 
         # Lagrange Gradient: Head-end pressure is ~5% higher than average chamber pressure (stagnation).
-        # We should plot the head-end pressure against burst limit, or show the limit against the max stress.
-        # Let's adjust the plotted pressure curve to represent Head End Pressure (Safety View).
-        # Or plot both? Let's keep it simple: P_head = P_chamber * 1.05
+        # We plot the head-end pressure against burst limit for safety visibility.
         p_head = [val * 1.05 for val in p]
 
         self.ax2.plot(t, p_head, 'r-', label="Head-End Pressure (+5%)")

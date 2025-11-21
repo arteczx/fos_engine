@@ -1,14 +1,28 @@
 class Exporter:
+    """
+    Handles exporting simulation results to external formats.
+    Supported formats:
+    - RASP (.eng) for OpenRocket / RockSim
+    """
+
     @staticmethod
     def export_rasp(filepath, motor_name, results, hardware, propellant):
         """
         Export simulation results to RASP (.eng) format.
+        This format allows the engine design to be used in flight simulators like OpenRocket.
 
-        Format:
+        Format Spec:
         ; Comments
         Name Diameter(mm) Length(mm) Delays PropWeight(kg) TotalWeight(kg) Manufacturer
         t(s) F(N)
         ...
+
+        Args:
+            filepath (str): Destination file path.
+            motor_name (str): Name of the motor.
+            results (dict): Simulation results dictionary.
+            hardware (Hardware): Hardware object (for dimensions).
+            propellant (Propellant): Propellant object (for metadata).
         """
         # Calculate summary stats
         times = results["time"]

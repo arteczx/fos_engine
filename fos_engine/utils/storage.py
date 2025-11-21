@@ -5,11 +5,25 @@ from fos_engine.core.hardware import Hardware
 from fos_engine.core.units import Units
 
 class DataManager:
+    """
+    Handles the persistence of motor designs.
+    Saves and loads the configuration of Propellant, Grain, and Hardware
+    to/from JSON files.
+    """
+
     @staticmethod
     def save_motor(filepath, propellant, grain, hardware, settings=None):
         """
         Saves the motor configuration to a JSON file.
-        Stores values in SI units (as they are in the classes).
+
+        Data is stored in SI units to ensure consistency with the Core engine.
+
+        Args:
+            filepath (str): Path to the destination JSON file.
+            propellant (Propellant): Propellant object to save.
+            grain (BatesGrain): Grain object to save.
+            hardware (Hardware): Hardware object to save.
+            settings (dict, optional): Additional UI settings (e.g., Erosive flag).
         """
         data = {
             "propellant": {
@@ -44,7 +58,13 @@ class DataManager:
     def load_motor(filepath):
         """
         Loads motor configuration from a JSON file.
-        Returns (Propellant, BatesGrain, Hardware, SettingsDict)
+
+        Args:
+            filepath (str): Path to the JSON file to load.
+
+        Returns:
+            tuple: (Propellant, BatesGrain, Hardware, dict)
+            Returns the reconstructed objects and settings dictionary.
         """
         with open(filepath, 'r') as f:
             data = json.load(f)
@@ -83,6 +103,9 @@ class DataManager:
     @staticmethod
     def get_default_propellants():
         """
-        Returns a list of default Propellant objects.
+        Returns a list of pre-configured default Propellants (e.g. KNSB).
+
+        Returns:
+            list[Propellant]: List of Propellant objects.
         """
         return [Propellant.create_knsb()]

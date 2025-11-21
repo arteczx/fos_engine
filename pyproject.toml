@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fos_engine"
+version = "1.0.0"
+description = "Internal Ballistics Simulator for Solid Rocket Motors"
+authors = [
+    {name = "FOS Team", email = "dev@fosengine.org"},
+]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "PyQt6"
+]
+
+[project.scripts]
+fos-engine = "fos_engine.gui.main_window:main"
+
+[tool.setuptools.packages.find]
+include = ["fos_engine*"]

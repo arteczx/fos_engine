@@ -155,8 +155,11 @@ class MainWindow(QMainWindow):
             Exporter.export_rasp(fname, "FOS_Motor", self.current_results, self.current_hw, self.current_prop)
             QMessageBox.information(self, "Exported", f"Saved to {fname}")
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+if __name__ == '__main__':
+    main()

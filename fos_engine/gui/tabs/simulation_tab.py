@@ -69,7 +69,13 @@ class SimulationTab(QWidget):
 
         burst_pressure_psi = hardware_safety["burst_pressure"] * 1.45038e-4
 
-        self.ax2.plot(t, p, 'r-', label="Chamber Pressure")
+        # Lagrange Gradient: Head-end pressure is ~5% higher than average chamber pressure (stagnation).
+        # We should plot the head-end pressure against burst limit, or show the limit against the max stress.
+        # Let's adjust the plotted pressure curve to represent Head End Pressure (Safety View).
+        # Or plot both? Let's keep it simple: P_head = P_chamber * 1.05
+        p_head = [val * 1.05 for val in p]
+
+        self.ax2.plot(t, p_head, 'r-', label="Head-End Pressure (+5%)")
         self.ax2.axhline(y=burst_pressure_psi, color='k', linestyle='--', label="Burst Pressure")
         self.ax2.set_ylabel("Pressure (PSI)")
         self.ax2.set_xlabel("Time (s)")

@@ -41,8 +41,11 @@ class HardwareTab(QWidget):
 
     def get_hardware(self):
         try:
+            dt = float(self.throat_input.text())
+            if dt <= 0: raise ValueError("Throat diameter must be > 0")
+
             return Hardware(
-                throat_diameter=Units.mm_to_m(float(self.throat_input.text())),
+                throat_diameter=Units.mm_to_m(dt),
                 exit_diameter=Units.mm_to_m(float(self.exit_input.text())),
                 casing_diameter=Units.mm_to_m(float(self.casing_od_input.text())),
                 casing_thickness=Units.mm_to_m(float(self.casing_thick_input.text())),

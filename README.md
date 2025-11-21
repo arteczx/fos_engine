@@ -97,6 +97,7 @@ $$
 $$
 
 Where:
+
 *   **Mass In ($\dot{m}_{in}$):** Sum of propellant generation and igniter flux.
 
     $$
@@ -146,7 +147,7 @@ The engine calculates the instantaneous burning surface area $A_b$ as a function
 A BATES grain consists of multiple uninhibited cylindrical segments burning on both the inner core and the end faces. This geometry balances the increasing core area with decreasing segment length, often yielding a neutral thrust curve.
 
 $$
-A_b(x) = N_{grains} \cdot \left[ \underbrace{\pi(D_{core}+2x)(L_{grain}-2x)}_{\text{Core Area}} + \underbrace{2 \cdot \frac{\pi}{4}(D_{outer}^2 - (D_{core}+2x)^2)}_{\text{End Faces Area}} \right]
+A_b(x) = N_{grains} \cdot \left[ \pi(D_{core}+2x)(L_{grain}-2x) + 2 \cdot \frac{\pi}{4}(D_{outer}^2 - (D_{core}+2x)^2) \right]
 $$
 
 #### **Star (Finocyl) Geometry**

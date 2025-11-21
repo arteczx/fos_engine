@@ -12,6 +12,7 @@ class Propellant:
         burn_rate_a (float): Saint Robert's Law coefficient 'a'. Units: m/s per Pa^n.
         burn_rate_n (float): Saint Robert's Law exponent 'n'. Dimensionless.
         k (float): Specific Heat Ratio (Gamma). Dimensionless.
+        combustion_efficiency (float): Efficiency factor (0.0 - 1.0) applied to C*. Default 0.95.
     """
     name: str
     density: float
@@ -19,6 +20,12 @@ class Propellant:
     burn_rate_a: float
     burn_rate_n: float
     k: float
+    combustion_efficiency: float = 0.95
+
+    @property
+    def effective_c_star(self):
+        """Returns C* adjusted by combustion efficiency."""
+        return self.c_star * self.combustion_efficiency
 
     @staticmethod
     def create_knsb():
@@ -29,14 +36,6 @@ class Propellant:
         Returns:
             Propellant: Configured KNSB object.
         """
-        # Standard KNSB properties
-        # Density ~ 1.84 g/cm3 = 1840 kg/m3
-        # C* ~ 895 m/s
-        # Burn rate logic:
-        # Nakka's KNSB: r = 8.266 * P_mpa ^ 0.319 (mm/s, Mpa)
-        # Converted to SI (m/s, Pa):
-        # r(m/s) = (a_nakka / 1000) * (1e-6)^n * P_pa^n
-
         n = 0.319
         a_nakka = 8.266 # mm/s per MPa^n
 
@@ -48,5 +47,6 @@ class Propellant:
             c_star=895.0,
             burn_rate_a=a_si,
             burn_rate_n=n,
-            k=1.13
+            k=1.13,
+            combustion_efficiency=0.95
         )

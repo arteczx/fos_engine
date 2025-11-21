@@ -21,6 +21,7 @@ class HardwareTab(QWidget):
         self.casing_od_input = QLineEdit("54") # mm
         self.casing_thick_input = QLineEdit("2") # mm
         self.yield_strength_input = QLineEdit("40000") # psi (Standard for Al is ~40k psi yield)
+        self.nozzle_eff_input = QLineEdit("0.95")
 
         dbl = QDoubleValidator()
         self.throat_input.setValidator(dbl)
@@ -28,12 +29,14 @@ class HardwareTab(QWidget):
         self.casing_od_input.setValidator(dbl)
         self.casing_thick_input.setValidator(dbl)
         self.yield_strength_input.setValidator(dbl)
+        self.nozzle_eff_input.setValidator(dbl)
 
         form_layout.addRow("Throat Diameter (mm):", self.throat_input)
         form_layout.addRow("Exit Diameter (mm):", self.exit_input)
         form_layout.addRow("Casing Diameter (OD) (mm):", self.casing_od_input)
         form_layout.addRow("Casing Thickness (mm):", self.casing_thick_input)
         form_layout.addRow("Material Yield Strength (psi):", self.yield_strength_input)
+        form_layout.addRow("Nozzle Efficiency (0-1):", self.nozzle_eff_input)
 
         layout.addLayout(form_layout)
 
@@ -57,7 +60,8 @@ class HardwareTab(QWidget):
                 exit_diameter=Units.mm_to_m(float(self.exit_input.text())),
                 casing_diameter=Units.mm_to_m(float(self.casing_od_input.text())),
                 casing_thickness=Units.mm_to_m(float(self.casing_thick_input.text())),
-                casing_yield_strength=Units.psi_to_pa(float(self.yield_strength_input.text()))
+                casing_yield_strength=Units.psi_to_pa(float(self.yield_strength_input.text())),
+                nozzle_efficiency=float(self.nozzle_eff_input.text())
             )
         except ValueError:
             return None

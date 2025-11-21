@@ -8,7 +8,7 @@ from fos_engine.utils.storage import DataManager
 class PropellantTab(QWidget):
     """
     GUI Tab for configuring Propellant Properties.
-    Allows user to input Density, C*, and Burn Rate parameters (Saint Robert's Law).
+    Allows user to input Density, C*, Burn Rate parameters, and Efficiency.
     """
 
     def __init__(self):
@@ -44,6 +44,7 @@ class PropellantTab(QWidget):
 
         self.n_input = QLineEdit(str(self.propellant.burn_rate_n))
         self.k_input = QLineEdit(str(self.propellant.k))
+        self.eff_input = QLineEdit(str(self.propellant.combustion_efficiency))
 
         # Validators
         dbl_val = QDoubleValidator()
@@ -52,6 +53,7 @@ class PropellantTab(QWidget):
         self.a_input.setValidator(dbl_val)
         self.n_input.setValidator(dbl_val)
         self.k_input.setValidator(dbl_val)
+        self.eff_input.setValidator(dbl_val)
 
         form_layout.addRow("Propellant Name:", self.name_input)
         form_layout.addRow("Density (g/cm³):", self.density_input)
@@ -59,6 +61,7 @@ class PropellantTab(QWidget):
         form_layout.addRow("Burn Rate Coefficient 'a' (SI):", self.a_input)
         form_layout.addRow("Burn Rate Exponent 'n':", self.n_input)
         form_layout.addRow("Specific Heat Ratio k:", self.k_input)
+        form_layout.addRow("Combustion Efficiency (0-1):", self.eff_input)
 
         layout.addLayout(form_layout)
         layout.addStretch()
@@ -75,6 +78,7 @@ class PropellantTab(QWidget):
             self.a_input.setText(str(prop.burn_rate_a))
             self.n_input.setText(str(prop.burn_rate_n))
             self.k_input.setText(str(prop.k))
+            self.eff_input.setText(str(prop.combustion_efficiency))
 
     def get_propellant(self):
         """
@@ -88,7 +92,8 @@ class PropellantTab(QWidget):
                 c_star=float(self.cstar_input.text()),
                 burn_rate_a=float(self.a_input.text()),
                 burn_rate_n=float(self.n_input.text()),
-                k=float(self.k_input.text())
+                k=float(self.k_input.text()),
+                combustion_efficiency=float(self.eff_input.text())
             )
         except ValueError:
             return None

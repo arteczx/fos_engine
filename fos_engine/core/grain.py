@@ -70,3 +70,26 @@ class BatesGrain:
         current_core_d = self.core_diameter + 2 * burn_depth
         current_length = self.length - 2 * burn_depth
         return (current_core_d >= self.outer_diameter) or (current_length <= 0)
+
+    def get_propellant_volume(self, burn_depth):
+        """
+        Calculate current volume of propellant remaining.
+
+        Args:
+            burn_depth (float): Current burn depth.
+
+        Returns:
+            float: Volume in m^3.
+        """
+        current_core_d = self.core_diameter + 2 * burn_depth
+        current_length = self.length - 2 * burn_depth
+
+        if current_core_d >= self.outer_diameter or current_length <= 0:
+            return 0.0
+
+        # Vol = (Area_Outer - Area_Core) * Length * Num
+        area_outer = np.pi * (self.outer_diameter / 2)**2
+        area_inner = np.pi * (current_core_d / 2)**2
+
+        vol_per_grain = (area_outer - area_inner) * current_length
+        return vol_per_grain * self.num_grains

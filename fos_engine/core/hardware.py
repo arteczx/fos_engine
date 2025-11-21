@@ -6,7 +6,7 @@ class Hardware:
     Stores dimensions and material properties to perform safety calculations.
     """
 
-    def __init__(self, throat_diameter, exit_diameter, casing_diameter, casing_thickness, casing_yield_strength=276e6):
+    def __init__(self, throat_diameter, exit_diameter, casing_diameter, casing_thickness, casing_yield_strength=276e6, nozzle_efficiency=0.95):
         """
         Initialize Hardware constraints.
 
@@ -17,12 +17,14 @@ class Hardware:
             casing_thickness (float): Wall thickness of the casing (meters).
             casing_yield_strength (float): Material Yield Strength in Pascals.
                                            Default is Al 6061-T6 (~276 MPa).
+            nozzle_efficiency (float): Efficiency factor (0.0 - 1.0) applied to Thrust. Default 0.95.
         """
         self.throat_diameter = throat_diameter
         self.exit_diameter = exit_diameter
         self.casing_diameter = casing_diameter
         self.casing_thickness = casing_thickness
         self.casing_yield_strength = casing_yield_strength
+        self.nozzle_efficiency = nozzle_efficiency
 
         self.throat_area = np.pi * (self.throat_diameter / 2)**2
         self.exit_area = np.pi * (self.exit_diameter / 2)**2

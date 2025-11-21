@@ -1,45 +1,51 @@
 from fos_engine.core.propellant import Propellant
 from fos_engine.core.grain import BatesGrain
+from fos_engine.core.star_grain import StarGrain
 from fos_engine.core.hardware import Hardware
 from fos_engine.core.simulation import Simulation
 from fos_engine.core.units import Units
-import matplotlib.pyplot as plt
 
-def test_simulation():
-    # Create KNSB Propellant
+def test_physics():
+    # Test BATES (Baseline)
+    print("--- Testing BATES Grain ---")
     prop = Propellant.create_knsb()
-
-    # Create Grain
-    # 20mm Core, 50mm OD, 100mm Length, 3 Grains
     grain = BatesGrain(
         outer_diameter=Units.mm_to_m(50),
         core_diameter=Units.mm_to_m(18),
         length=Units.mm_to_m(100),
         num_grains=3
     )
-
-    # Create Hardware
-    # Throat 12mm, Exit 20mm, Casing OD 54mm (ID ~50), Thickness 2mm
     hw = Hardware(
         throat_diameter=Units.mm_to_m(12),
         exit_diameter=Units.mm_to_m(25),
         casing_diameter=Units.mm_to_m(54),
         casing_thickness=Units.mm_to_m(2)
     )
-
-    # Run Simulation
     sim = Simulation(prop, grain, hw, time_step=0.01)
-    results = sim.run()
+    results = sim.run(use_erosive_burning=True)
 
-    print("Max Pressure (Pa):", max(results["pressure"]))
-    print("Max Pressure (PSI):", Units.pa_to_psi(max(results["pressure"])))
-    print("Max Thrust (N):", max(results["thrust"]))
-    print("Total Impulse (Ns):", sum(results["thrust"]) * sim.dt)
-    print("Burn Time (s):", results["time"][-1])
+    print(f"Max Pressure: {Units.pa_to_psi(max(results['pressure'])):.2f} PSI")
+    print(f"Max Thrust: {max(results['thrust']):.2f} N")
+    print(f"Burn Time: {results['time'][-1]:.2f} s")
 
-    # Simple plot check (blocking if run locally, but here just for code correctness check)
-    # plt.plot(results["time"], results["pressure"])
-    # plt.show()
+    # Test STAR
+    print("\n--- Testing STAR Grain ---")
+    # Same OD, but Star geometry. Web approx (50/2 - 18/2)/2 ~ 8mm?
+    # Let's say Web = 15mm (Deep star)
+    star_grain = StarGrain(
+        outer_diameter=Units.mm_to_m(50),
+        web_thickness=Units.mm_to_m(15),
+        num_points=5,
+        length=Units.mm_to_m(100),
+        num_grains=3
+    )
+
+    sim_star = Simulation(prop, star_grain, hw, time_step=0.01)
+    results_star = sim_star.run()
+
+    print(f"Max Pressure: {Units.pa_to_psi(max(results_star['pressure'])):.2f} PSI")
+    print(f"Max Thrust: {max(results_star['thrust']):.2f} N")
+    print(f"Burn Time: {results_star['time'][-1]:.2f} s")
 
 if __name__ == "__main__":
-    test_simulation()
+    test_physics()

@@ -44,9 +44,13 @@ class Simulation:
         k = self.propellant.k
         # Gamma Function (Vandenkerckhove function)
         self.gamma_func = np.sqrt(k) * (2/(k+1)) ** ((k+1)/(2*(k-1)))
+
+        # Effective C* (Combustion Efficiency)
+        self.c_star_eff = self.propellant.c_star * getattr(self.propellant, 'combustion_efficiency', 1.0)
+
         # Gas Constant * Temperature Term (RT) derived from C*
         # C* = sqrt(RT) / Gamma_func  =>  RT = (C* * Gamma_func)^2
-        self.RT = (self.propellant.c_star * self.gamma_func)**2
+        self.RT = (self.c_star_eff * self.gamma_func)**2
 
     def _calculate_cf(self, P_chamber, P_atm, epsilon):
         """
@@ -104,7 +108,7 @@ class Simulation:
         Cf = term1 + term2
         return Cf
 
-    def _derivatives(self, t, state, current_throat_area, use_erosive, erosion_rate):
+    def _derivatives(self, t, state, current_throat_area, use_erosive, erosion_rate, m_dot_igniter):
         """
         Calculate derivatives for RK4 solver.
         System State: [Pressure (Pa), BurnDepth (m)]
@@ -122,32 +126,33 @@ class Simulation:
 
         # Erosive Burning Check (Optional)
         if use_erosive:
+             # Basic grain validity check
              current_core_d = self.grain.core_diameter + 2 * burn_depth
              if current_core_d < self.grain.outer_diameter:
                  A_port = np.pi * (current_core_d / 2)**2
                  # Mass Flux G approximation
-                 m_flow_approx = (P_c * current_throat_area) / self.propellant.c_star
+                 m_flow_approx = (P_c * current_throat_area) / self.c_star_eff
                  G = m_flow_approx / A_port
 
-                 G_crit = 250.0 # Critical Flux (kg/m^2s)
-                 k_erosive = 0.002 # Erosion constant
+                 G_crit = 300.0 # Critical Flux (kg/m^2s)
+                 k_erosive = 0.0005 # Erosion constant (Conservative)
                  if G > G_crit:
-                     r = r_base * (1 + k_erosive * (G - G_crit))
+                     factor = 1 + k_erosive * (G - G_crit)
+                     if factor > 3.0: factor = 3.0 # Safety clamp to prevent numerical explosion
+                     r = r_base * factor
 
         # 2. Mass Generation Rate (kg/s)
         Ab = self.grain.get_burn_area(burn_depth)
         m_dot_gen = Ab * r * self.propellant.density
 
         # 3. Mass Flow Out Rate (kg/s)
-        m_dot_out = (P_c * current_throat_area) / self.propellant.c_star
+        m_dot_out = (P_c * current_throat_area) / self.c_star_eff
 
         # 4. Calculate Chamber Pressure Change (dP/dt)
-        # Vc * dP/dt = (m_gen - m_out) * RT
+        # Vc * dP/dt = (m_gen + m_igniter - m_out) * RT
 
         # Calculate Free Volume (Chamber Volume - Grain Volume)
-        # Note: We approximate chamber length as grain length sum.
-        grain_vol = self.grain.num_grains * (np.pi * (self.grain.outer_diameter/2)**2 - np.pi * ((self.grain.core_diameter + 2*burn_depth)/2)**2) * (self.grain.length - 2*burn_depth)
-        if grain_vol < 0: grain_vol = 0
+        grain_vol = self.grain.get_propellant_volume(burn_depth)
 
         casing_id = self.hardware.casing_diameter - 2 * self.hardware.casing_thickness
         L_total = self.grain.length * self.grain.num_grains
@@ -156,7 +161,7 @@ class Simulation:
         V_free = chamber_volume_total - grain_vol
         if V_free < 0.0001: V_free = 0.0001
 
-        dp_dt = ((m_dot_gen - m_dot_out) * self.RT) / V_free
+        dp_dt = ((m_dot_gen + m_dot_igniter - m_dot_out) * self.RT) / V_free
 
         return np.array([dp_dt, r])
 
@@ -175,12 +180,18 @@ class Simulation:
 
         # Initial Conditions
         P_atm = 101325.0
-        P_c = 200000.0 # Start with ignition pressure (2 bar)
+        P_c = P_atm # Start at Ambient (Igniter will pressurize)
         burn_depth = 0.0
 
         # Setup Erosion
         initial_throat_diameter = self.hardware.throat_diameter
         erosion_rate = 0.0001 if use_erosive_burning else 0.0 # Linear erosion if Advanced
+
+        # Setup Ignition (Simple Mass Flux Model)
+        # Assume a small pyrotechnic charge that burns for 0.2s
+        # Mass flow ~ 0.01 kg/s (just enough to pressurize)
+        t_ignition = 0.2
+        m_dot_igniter_avg = 0.05 # Adjust this to get robust ignition
 
         running = True
 
@@ -189,13 +200,16 @@ class Simulation:
             current_throat_diameter = initial_throat_diameter + (erosion_rate * self.t)
             current_throat_area = np.pi * (current_throat_diameter / 2)**2
 
+            # Determine Igniter Flux
+            m_dot_igniter = m_dot_igniter_avg if self.t < t_ignition else 0.0
+
             # RK4 Integration Step
             y = np.array([P_c, burn_depth])
 
-            k1 = self._derivatives(self.t, y, current_throat_area, use_erosive_burning, erosion_rate)
-            k2 = self._derivatives(self.t + self.dt/2, y + k1 * self.dt/2, current_throat_area, use_erosive_burning, erosion_rate)
-            k3 = self._derivatives(self.t + self.dt/2, y + k2 * self.dt/2, current_throat_area, use_erosive_burning, erosion_rate)
-            k4 = self._derivatives(self.t + self.dt, y + k3 * self.dt, current_throat_area, use_erosive_burning, erosion_rate)
+            k1 = self._derivatives(self.t, y, current_throat_area, use_erosive_burning, erosion_rate, m_dot_igniter)
+            k2 = self._derivatives(self.t + self.dt/2, y + k1 * self.dt/2, current_throat_area, use_erosive_burning, erosion_rate, m_dot_igniter)
+            k3 = self._derivatives(self.t + self.dt/2, y + k2 * self.dt/2, current_throat_area, use_erosive_burning, erosion_rate, m_dot_igniter)
+            k4 = self._derivatives(self.t + self.dt, y + k3 * self.dt, current_throat_area, use_erosive_burning, erosion_rate, m_dot_igniter)
 
             dy = (k1 + 2*k2 + 2*k3 + k4) * (self.dt / 6.0)
 
@@ -208,10 +222,13 @@ class Simulation:
             # Calculate Outputs for storage
             epsilon = self.hardware.exit_area / current_throat_area
             Cf = self._calculate_cf(P_c_new, P_atm, epsilon)
-            thrust = Cf * current_throat_area * P_c_new
+
+            # Apply Nozzle Efficiency
+            nozzle_eff = getattr(self.hardware, 'nozzle_efficiency', 0.95)
+            thrust = Cf * current_throat_area * P_c_new * nozzle_eff
 
             Ab = self.grain.get_burn_area(burn_depth_new)
-            m_dot_out = (P_c_new * current_throat_area) / self.propellant.c_star
+            m_dot_out = (P_c_new * current_throat_area) / self.c_star_eff
 
             # Update State
             self.t += self.dt
@@ -228,7 +245,7 @@ class Simulation:
 
             # Stop Conditions
             # 1. Grain Burned Out AND Pressure dropped back to near ambient
-            if self.grain.is_burned_out(burn_depth) and P_c < P_atm * 1.05:
+            if self.grain.is_burned_out(burn_depth) and P_c < P_atm * 1.05 and self.t > t_ignition:
                 running = False
             # 2. Safety Timeout
             if self.t > 10.0:

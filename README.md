@@ -6,7 +6,7 @@
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 ### 1. Advanced Physics Engine
 *   **Runge-Kutta 4 (RK4) Solver:** High-precision time-stepping simulation that solves the non-linear differential equations of internal ballistics.
@@ -30,7 +30,7 @@
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 *   Python 3.8 or higher
@@ -66,7 +66,7 @@ python main.py
 
 ---
 
-## 📚 Theory Reference
+## Theory Reference
 
 FOS Engine is built on the fundamental conservation laws of fluid dynamics and thermodynamics governing solid rocket propulsion.
 
@@ -173,7 +173,7 @@ $$
 
 ---
 
-## 🛠️ Usage Guide
+## Usage Guide
 
 1.  **Propellant Tab:**
     *   Load "KNSB" from the preset menu.
@@ -194,5 +194,5 @@ $$
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the MIT License.

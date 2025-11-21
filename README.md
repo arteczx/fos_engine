@@ -101,9 +101,20 @@ $$ F = \lambda \left( \dot{m}_{out} v_e + (P_e - P_{atm}) A_e \right) $$
 Where $\lambda$ represents nozzle efficiency losses (friction/divergence).
 
 ### 4. Grain Geometry
-*   **BATES:** Surface Area evolution is calculated analytically for cylindrical segments burning on the core and ends.
-    $$ A_b(x) = N \cdot [ \pi(D_{core}+2x)(L-2x) + 2 \cdot \frac{\pi}{4}(D_{outer}^2 - (D_{core}+2x)^2) ] $$
-*   **Star:** Uses a geometric approximation to model the progressive/regressive nature of star grains, transitioning from complex perimeter burning to cylindrical sliver burning.
+
+FOS Engine calculates the burning surface area $A_b$ as a function of the burn depth $x$ (distance regressed).
+
+#### **BATES (Ballistic Test and Evaluation System)**
+Analytically solves for the geometry of multiple cylindrical segments burning on both the inner core and end faces. This geometry typically yields a neutral thrust curve.
+
+$$
+A_b(x) = N \cdot \left[ \pi(D_{core}+2x)(L-2x) + 2 \cdot \frac{\pi}{4}(D_{outer}^2 - (D_{core}+2x)^2) \right]
+$$
+
+#### **Star (Finocyl) Geometry**
+Star grains provide a **Progressive-Regressive** burn profile, useful for high-performance motors. The engine models this using a two-phase geometric approximation:
+1.  **Star Phase:** The burn front propagates outwards from the star pattern, initially increasing surface area (Progressive).
+2.  **Cylindrical/Sliver Phase:** Once the star points are consumed (burn depth > web), the geometry transitions to a cylindrical burn with diminishing slivers (Regressive).
 
 ---
 
